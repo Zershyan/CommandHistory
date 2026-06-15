@@ -1,9 +1,8 @@
-package io.zershyan.commandhistory.client.handler;
+package io.zershyan.commandhistory.handler;
 
 import io.zershyan.commandhistory.CommandHistory;
 import io.zershyan.commandhistory.config.CHConfigs;
 import net.minecraft.client.Minecraft;
-import net.minecraft.util.Mth;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.ClientPlayerNetworkEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -26,6 +25,9 @@ public class ClientNetworkHandler {
             if (!Files.exists(history)) Files.createFile(history);
             try(Stream<String> lines = Files.lines(history)) {
                 List<String> strings = lines.toList();
+                if(CHConfigs.Client.onlyCommand.get()) {
+                    strings = strings.stream().filter(s -> s.startsWith("/")).toList();
+                }
                 if(strings.isEmpty()) return;
                 Integer limit = CHConfigs.Client.historyLimit.get();
                 List<String> result = new ArrayList<>(strings);
@@ -48,6 +50,9 @@ public class ClientNetworkHandler {
             Integer limit = CHConfigs.Client.historyLimit.get();
             Minecraft instance = Minecraft.getInstance();
             List<String> recentChat = instance.gui.getChat().getRecentChat();
+            if(CHConfigs.Client.onlyCommand.get()) {
+                recentChat = recentChat.stream().filter(s -> s.startsWith("/")).toList();
+            }
             List<String> result = new ArrayList<>(recentChat);
             int size = recentChat.size();
             if(size > limit) result = recentChat.subList(size - limit, size);
